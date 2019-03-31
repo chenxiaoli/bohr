@@ -249,7 +249,7 @@ class HttpBitmex(object):
 if __name__ == "__main__":
     base_url = "https://www.bitmex.com"
     uri = "mongodb://%s:%s@%s" % (
-        quote_plus("admin"), quote_plus("416211"), "192.168.1.2:27017")
+        quote_plus(settings.DB_USER), quote_plus(settings.DB_PASSWORD), settings.DB_HOST)
     client = MongoClient(uri)
     db=client["trade_data"]
     symbol = "XBTUSD"

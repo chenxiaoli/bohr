@@ -1,3 +1,7 @@
+DB_HOST="192.168.1.2"
+DB_USER="admin"
+DB_PASSWORD="416211"
+
 BIN_SIZE_LIST=(
     ("3m",("1m",3)),
     ("5m",("1m",5)),
