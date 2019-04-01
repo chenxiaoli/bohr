@@ -118,7 +118,7 @@ class TradeBucketed(object):
             _done=False
         elif end_time>orgin_bin_last_one_time:
             return
-        start_time_str = isodate.datetime_isoformat(start_time)
+        start_time_str = isodate.time_isoformat(start_time)
         end_time_str=isodate.datetime_isoformat(end_time)
         _base_bin_size=bin_size_params[0]
         items= self.find(bin_size=_base_bin_size,start_time=start_time_str,end_time=end_time_str)

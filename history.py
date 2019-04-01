@@ -225,12 +225,10 @@ class HttpBitmex(object):
                 if type(item) == str:
                     print("error:", result)
                     exit()
-                item["symbol"]=symbol
-                item["binSize"] = bin_size
-                try:
-                    self.db["bitmex_trade_bucketed"].insert_one(item)
-                except DuplicateKeyError:
-                    pass
+
+                _key={"symbol":self.symbol,"binSize":self.bin_size,"timestamp":isodate.parse_datetime(item["timestamp"])}
+                del item["timestamp"]
+                self.db["bitmex_trade_bucketed"].update_one(_key,{"$set":item},upsert=True)
                 self._trade_bucketed.increase_create_trade_bucketed()
             start = self.count + start
             sleep(1)
