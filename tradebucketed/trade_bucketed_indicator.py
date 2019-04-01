@@ -26,7 +26,6 @@ class TradeBucketedIndicator(object):
         _qq=self.collection.find(self.filter_keys).sort("timestamp",-1).limit(1)
         logging.info("get last one %s" % self.filter_keys)
         for i in _qq:
-            logging.info("last one:",i)
             return i
 
     def _last_source(self,):
@@ -42,8 +41,8 @@ class EMAIndicator(TradeBucketedIndicator):
         self.length=length
         self.source=source
         self.collection=collection
-        self.collection.create_index([("timestamp", pymongo.DESCENDING),
-                             ("symbol", pymongo.ASCENDING),("binSize",1),("length",1),("source",1)],unique=True)
+        self.collection.create_index([
+                             ("symbol", pymongo.ASCENDING),("binSize",1),("length",1),("source",1),("timestamp", pymongo.DESCENDING)],unique=True)
         if self.source not in ("open","close","high","low","volume"):
             raise Exception("unsuport source %s" % self.source)
 
@@ -101,7 +100,7 @@ class EMAIndicator(TradeBucketedIndicator):
         _last_source_item=self._last_source()
         _last_one_item=self._last_one()
         if not _last_one_item:
-            logging.info("need to create first one")
+            logging.debug("need to create first one")
             self._create_first_one()
         elif _last_source_item["timestamp"]==_last_one_item["timestamp"]:
             self._create_one(_last_source_item)
@@ -112,17 +111,31 @@ class EMAIndicator(TradeBucketedIndicator):
         return _done
 
     def _create_many_next(self,from_timestamp,step):
-        rr=self.source_collection.find({"symbol":self.symbol,"binSize":self.bin_size,"timestamp":{"$gt":from_timestamp}}).sort("timestamp",-1).limit(step)
+        rr=self.source_collection.find({"symbol":self.symbol,"binSize":self.bin_size,"timestamp":{"$gt":from_timestamp}}).sort("timestamp",1).limit(step)
         # result=[]
         for r in rr:
             self._create_one(r)
 
 
 
+class MACDIndicator(TradeBucketedIndicator):
+    def __init__(self,source_collection,collection,symbol,bin_size):
+        self.source_collection=source_collection
+        self.symbol=symbol
+        self.bin_size=bin_size
+        self.source_keys=("symbol","bin_size")
+        self.indicator_keys=("fast","slow","signal","source")
+        self.collection=collection
+        self.collection.create_index([("timestamp", pymongo.DESCENDING),
+                             ("symbol", pymongo.ASCENDING),("binSize",1),("length",1),("source",1)],unique=True)
+        if self.source not in ("open","close","high","low","volume"):
+            raise Exception("unsuport source %s" % self.source)
 
+        self.source_filter_keys = {"symbol": self.symbol, "binSize": self.bin_size }
+        self.filter_keys={"symbol":self.symbol,"binSize":self.bin_size,"length":self.length,"source":self.source}
 
-
-
-
-
-
+    def cal_MACD(self):
+        fast=None
+        slow=None
+        diff=None
+        return fast,slow,diff

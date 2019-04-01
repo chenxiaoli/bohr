@@ -98,23 +98,19 @@ class TradeBucketed(object):
         return start_time
 
     def _increase_create_trade_bucketed(self,bin_size,bin_size_params):
-        logging.info("start create bin size %s" % bin_size)
+        logging.info("start create bin size %s params:%s" % (bin_size,bin_size_params))
         _done=True
         first=False #是否第一条记录
         start = self._get_trade_bucketed_last_one(bin_size=bin_size)
         if not start:
             start_time = self._create_first_time(bin_size,bin_size_params)
             first=True
-            # logging.debug("frist start time zone:%s" % start_time.tzinfo)
         else:
             start_time = isodate.parse_datetime(start["timestamp"])
-            # logging.debug("not frist start time zone:%s" % start_time.tzinfo)
-        # logging.debug(" _increase_create_trade_bucketed start time zone:%s" % start_time.tzinfo)
         end_time=self._end_time(start_time,bin_size,bin_size_params)
 
         origin_bin_last_one = self._get_trade_bucketed_last_one(bin_size="1m")
         orgin_bin_last_one_time=isodate.parse_datetime(origin_bin_last_one["timestamp"])
-        # logging.debug("origin_bin_last_one time zone:%s,end_time time zone:%s" % (orgin_bin_last_one_time.tzinfo,end_time.tzinfo))
         if orgin_bin_last_one_time>=end_time and not first:
             start_time = self._create_next_timestamp(start_time=start_time,bin_size=bin_size,bin_size_params=bin_size_params)
             end_time=self._end_time(start_time,bin_size,bin_size_params)
@@ -124,20 +120,13 @@ class TradeBucketed(object):
         start_time_str = isodate.datetime_isoformat(start_time)
         end_time_str=isodate.datetime_isoformat(end_time)
         _base_bin_size=bin_size_params[0]
-        # logging.debug("create trade bucketed:bin_size:%s,start time:%s,end time:%s" % (bin_size,start_time_str,end_time_str))
         items= self.find(bin_size=_base_bin_size,start_time=start_time_str,end_time=end_time_str)
 
         if len(items)==0:
-            item={}
-            item["timestamp"]=start_time_str
-            item["symbol"]=self.symbol
-            item["binSize"]=bin_size
-            item["high"] = 0
-            item["low"] = 0
-            item["open"] = 0
-            item["close"] = 0
-            item["volume"] = 0
-            item["trades"] = 0
+            _msg="error at symbol:%s,binSize:%s,timestamp:%s,start time:%s,end_time:%s,base binSize:%s, bin_size_params:%s" % \
+                 (self.symbol,bin_size,start_time_str,start_time_str,end_time_str,_base_bin_size,bin_size_params)
+            logging.error(_msg)
+            raise Exception(_msg)
         else:
             item=self._trade_bucketed_aggregation(items)
             item["timestamp"]=start_time_str
