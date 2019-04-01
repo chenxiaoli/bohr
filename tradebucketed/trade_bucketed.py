@@ -116,7 +116,8 @@ class TradeBucketed(object):
             end_time=self._end_time(start_time,bin_size,bin_size_params)
         if orgin_bin_last_one_time>end_time:
             _done=False
-
+        elif end_time>orgin_bin_last_one_time:
+            return
         start_time_str = isodate.datetime_isoformat(start_time)
         end_time_str=isodate.datetime_isoformat(end_time)
         _base_bin_size=bin_size_params[0]
