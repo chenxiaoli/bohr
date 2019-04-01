@@ -4,3 +4,11 @@
 创建python虚拟环境
 virtualenv -p /usr/bin/python3 env
 source ./env/bin/activate
+
+talib库安装
+alib库有超多现成的方法，不用辛辛苦苦造轮子。上MACD、动量、rsi、移动均线等等
+
+相应操作系统的安装包在这里https://www.lfd.uci.edu/~gohlke/pythonlibs/
+windows：
+
+pip install .\TA_Lib-0.4.17-cp36-cp36m-win_amd64.whl

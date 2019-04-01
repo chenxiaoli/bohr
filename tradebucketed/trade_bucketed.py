@@ -29,7 +29,6 @@ class TradeBucketed(object):
                 done=self._increase_create_trade_bucketed(k,v)
 
     def find(self,bin_size,start_time,end_time):
-        print("symbol:%s,binSize:%s,start_time:%s,end_time:%s" % (self.symbol,bin_size,start_time,end_time))
         result=[]
         for item in self.collection.find({"symbol":self.symbol,"binSize":bin_size,"timestamp":{"$gte":start_time,"$lt": end_time}}):
             result.append(item)
@@ -97,11 +96,6 @@ class TradeBucketed(object):
                 raise Exception("binSize时间长度设置出错了。")
             start_time = start_time + datetime.timedelta(minutes=_interval_minutes)
         return start_time
-
-
-    def create_trade_bucketed(self,start_time,bin_size,bin_size_params):
-        """创建一条binSize记录"""
-        pass
 
     def _increase_create_trade_bucketed(self,bin_size,bin_size_params):
         logging.info("start create bin size %s" % bin_size)
