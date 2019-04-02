@@ -85,7 +85,7 @@ class TradeBucketed(object):
 
         if bin_size=="1M":
             if start_time.month==12:
-                start_time=start_time.replace(month=start_time.month+1,day=1,hour=0,minute=0,second=0,microsecond=0)
+                start_time=start_time.replace(year=start_time.year+1,month=1,day=1,hour=0,minute=0,second=0,microsecond=0)
             else:
                 start_time=start_time.replace(month=start_time.month+1,day=1,hour=0,minute=0,second=0,microsecond=0)
         elif bin_size=="1y":

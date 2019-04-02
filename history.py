@@ -215,12 +215,12 @@ class HttpBitmex(object):
 
         last_one_timestamp=last_one["timestamp"]
         if last_one_timestamp == first_one_timestamp:
-            print("no need update")
+            logging.info("no more data")
             return
         start = 0
         _more=True
         while _more:
-            print("start time:%s,start:%s" % (first_one_timestamp,start))
+            logging.info("start time:%s,start:%s" % (first_one_timestamp,start))
             result = self.get_trade_bucketed(start=start, start_time=isodate.datetime_isoformat(first_one_timestamp))
             if len(result) == 0:
                 print(result)
