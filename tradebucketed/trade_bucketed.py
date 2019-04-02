@@ -4,6 +4,7 @@ import time
 import datetime
 import logging
 import settings
+import pytz
 from collections import OrderedDict
 class TradeBucketed(object):
     def __init__(self,collection,symbol,bin_size_list):
@@ -11,14 +12,16 @@ class TradeBucketed(object):
         self.symbol=symbol
         self.base_bin_size=settings.BASE_BIN_SIZE
         self.bin_sizes=OrderedDict(bin_size_list)
-
     def _get_trade_bucketed_last_one(self,bin_size):
         cursor=self.collection.find({"symbol":self.symbol,"binSize":bin_size}).sort("timestamp", -1).limit(1)
         for doc in cursor:
+            doc["timestamp"]=doc["timestamp"].replace(tzinfo=pytz.utc)
+
             return doc
     def _get_trade_bucketed_first_one(self,bin_size):
         cursor=self.collection.find({"symbol":self.symbol,"binSize":bin_size}).sort("timestamp", 1).limit(1)
         for doc in cursor:
+            doc["timestamp"] = doc["timestamp"].replace(tzinfo=pytz.utc)
             return doc
 
     def increase_create_trade_bucketed(self):
@@ -59,7 +62,7 @@ class TradeBucketed(object):
         """创建binsize第一条记录的时间"""
         _interval_minutes = bin_size_params[1]
         first = self._get_trade_bucketed_first_one(bin_size="1m")
-        first_time = isodate.parse_datetime(first["timestamp"])
+        first_time = first["timestamp"]
         if bin_size=="1M":
             first_time=first_time.replace(day=1,hour=0,minute=0,second=0,microsecond=0)
         elif bin_size=="1y":
@@ -68,9 +71,11 @@ class TradeBucketed(object):
             isoweekday=first_time.isoweekday()
             first_time=first_time - datetime.timedelta(days=isoweekday - 1)
             first_time=first_time.replace(hour=0, minute=0, second=0, microsecond=0)
+        elif bin_size in ("1d","2d","3d","4d","5d","6d","7d","8d","9d","10d","15d"):
+            first_time = first_time.replace(hour=0, minute=0, second=0, microsecond=0)
         else:
-            seconds1970=time.mktime(first_time.timetuple())
-            minutes =seconds1970 % (60*_interval_minutes)
+            minutes=first_time.timestamp()%(60*_interval_minutes)
+            logging.debug(" first_time:%s, delta minutes:%s" % (first_time,minutes))
             first_time = first_time - datetime.timedelta(minutes=minutes)
 
         return first_time
@@ -106,31 +111,30 @@ class TradeBucketed(object):
             start_time = self._create_first_time(bin_size,bin_size_params)
             first=True
         else:
-            start_time = isodate.parse_datetime(start["timestamp"])
+            start_time = start["timestamp"]
         end_time=self._end_time(start_time,bin_size,bin_size_params)
 
         origin_bin_last_one = self._get_trade_bucketed_last_one(bin_size="1m")
-        orgin_bin_last_one_time=isodate.parse_datetime(origin_bin_last_one["timestamp"])
-        if orgin_bin_last_one_time>=end_time and not first:
+        orgin_bin_last_one_time=origin_bin_last_one["timestamp"]
+        if orgin_bin_last_one_time >= end_time and not first:
             start_time = self._create_next_timestamp(start_time=start_time,bin_size=bin_size,bin_size_params=bin_size_params)
             end_time=self._end_time(start_time,bin_size,bin_size_params)
         if orgin_bin_last_one_time>end_time:
             _done=False
         elif end_time>orgin_bin_last_one_time:
-            return
-        start_time_str = isodate.time_isoformat(start_time)
-        end_time_str=isodate.datetime_isoformat(end_time)
+            return _done
+
         _base_bin_size=bin_size_params[0]
-        items= self.find(bin_size=_base_bin_size,start_time=start_time_str,end_time=end_time_str)
+        items= self.find(bin_size=_base_bin_size,start_time=start_time,end_time=end_time)
 
         if len(items)==0:
             _msg="error at symbol:%s,binSize:%s,timestamp:%s,start time:%s,end_time:%s,base binSize:%s, bin_size_params:%s" % \
-                 (self.symbol,bin_size,start_time_str,start_time_str,end_time_str,_base_bin_size,bin_size_params)
+                 (self.symbol,bin_size,start_time,start_time,end_time,_base_bin_size,bin_size_params)
             logging.error(_msg)
             raise Exception(_msg)
         else:
             item=self._trade_bucketed_aggregation(items)
-            item["timestamp"]=start_time_str
+            item["timestamp"]=start_time
             item["symbol"]=self.symbol
             item["binSize"]=bin_size
         self.save_or_update(item)
@@ -141,7 +145,6 @@ class TradeBucketed(object):
         """"""
         high=items[0]["high"]
         low=items[0]["low"]
-
         open=items[0]["open"]
         close=items[-1]["close"]
         volume=0

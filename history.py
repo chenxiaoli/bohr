@@ -35,7 +35,7 @@ class HttpBitmex(object):
         self.session.headers.update({'accept': 'application/json'})
         self.db=db
         self.collection=self.db[BITMEX_TRADE_BUCKETED]
-        self.db[BITMEX_TRADE_BUCKETED].create_index([("symbol",1),("binSize",1),("timestamp",1)], unique= True)
+        self.db[BITMEX_TRADE_BUCKETED].create_index([("symbol",1),("binSize",1),("timestamp",-1)], unique= True)
         self.apiKey = apiKey
         self.apiSecret = apiSecret
         self._trade_bucketed=TradeBucketed(collection=self.db[BITMEX_TRADE_BUCKETED],symbol=self.symbol,bin_size_list=settings.BIN_SIZE_LIST)
@@ -207,16 +207,21 @@ class HttpBitmex(object):
     def increase_trade_bucketed_history(self):
         last_one = self.get_trade_bucketed_last_one()
         db_last_one=self.get_db_trade_bucketed_last_one()
-        first_one_timestamp=db_last_one["timestamp"]
+        if db_last_one:
+            first_one_timestamp=db_last_one["timestamp"]
+        else:
+            first_one_timestamp=self.get_trade_bucketed_first_one()["timestamp"]
+            first_one_timestamp=isodate.parse_datetime(first_one_timestamp)
+
         last_one_timestamp=last_one["timestamp"]
-        if last_one_timestamp==first_one_timestamp:
+        if last_one_timestamp == first_one_timestamp:
             print("no need update")
             return
         start = 0
         _more=True
         while _more:
             print("start time:%s,start:%s" % (first_one_timestamp,start))
-            result = self.get_trade_bucketed(start=start, start_time=first_one_timestamp)
+            result = self.get_trade_bucketed(start=start, start_time=isodate.datetime_isoformat(first_one_timestamp))
             if len(result) == 0:
                 print(result)
                 print("no more")
@@ -235,8 +240,10 @@ class HttpBitmex(object):
 
     def get_db_trade_bucketed_last_one(self):
         collection = self.db["bitmex_trade_bucketed"]
-        result = collection.find({"symbol":self.symbol,"binSize":self.bin_size}).sort("timestamp", -1).limit(1).next()
-        return result
+        result=collection.find({"symbol":self.symbol,"binSize":self.bin_size}).sort("timestamp", -1).limit(1)
+        for i in result:
+            return i
+
     def get_trade_bucketed_first_one(self,):
         return self.get_trade_bucketed(count=1)[0]
 
@@ -244,7 +251,20 @@ class HttpBitmex(object):
         return self.get_trade_bucketed(count=1,reverse="true")[0]
 
 
+def setup_logger():
+    # Prints logger info to terminal
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)  # Change this to DEBUG if you want a lot more info
+    ch = logging.StreamHandler()
+    # create formatter
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    # add formatter to ch
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    return logger
+
 if __name__ == "__main__":
+    setup_logger()
     base_url = "https://www.bitmex.com"
     uri = "mongodb://%s:%s@%s" % (
         quote_plus(settings.DB_USER), quote_plus(settings.DB_PASSWORD), settings.DB_HOST)
