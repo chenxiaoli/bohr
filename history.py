@@ -248,7 +248,7 @@ class HttpBitmex(object):
                 del item["timestamp"]
                 self.db["bitmex_trade_bucketed"].update_one(_key,{"$set":item},upsert=True)
                 self._trade_bucketed.increase_create_trade_bucketed()
-            channel.basic_publish(exchange='trade_bucketed', routing_key='bitmex', body=json.dumps(result))
+            channel.basic_publish(exchange='trade_bucketed', routing_key='', body=json.dumps(result))
             start = self.count + start
             if len(result)>5:
                 sleep(1)

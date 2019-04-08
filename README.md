@@ -10,5 +10,16 @@ alib库有超多现成的方法，不用辛辛苦苦造轮子。上MACD、动量
 
 相应操作系统的安装包在这里https://www.lfd.uci.edu/~gohlke/pythonlibs/
 windows：
-
 pip install .\TA_Lib-0.4.17-cp36-cp36m-win_amd64.whl
+ubuntu：
+wget https://sourceforge.net/projects/ta-lib/files/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz
+
+$ tar -xvf ta-lib-0.4.0-src.tar.gz  # 解压
+$ cd ta-lib # 进入目录
+$ ./configure --prefix=/usr
+$ make
+$ make install
+将编译好的文件复制到虚拟目录中
+$ cp /usr/lib/libta_lib*  ~/bohr/env/lib
+最后：
+pip install ta-lib
