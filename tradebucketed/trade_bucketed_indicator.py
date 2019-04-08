@@ -329,7 +329,7 @@ class EfiIndicator(TradeBucketedIndicator):
         self.collection = collection
         self.collection.create_index([("node", pymongo.ASCENDING),
             ("symbol", pymongo.ASCENDING), ("binSize", 1), ("timestamp", pymongo.DESCENDING), ], unique=True)
-
+        self.source_filter_keys = {"symbol": self.symbol, "binSize": self.bin_size}
         self.source_keys = {"node":self.node,"symbol": self.symbol, "binSize": self.bin_size}
         self.keys = {"node":self.node,"symbol": self.symbol, "binSize": self.bin_size,"efi":{"$elemMatch": {"length":self.length }}}
 
@@ -427,7 +427,7 @@ class EfiIndicator(TradeBucketedIndicator):
                 last_one = self.create_next(last_one, step=500)
             else:
                 last_one = self.create_first_one()
-            delta=trade_bucketed["timestamp"] - last_one["timestamp"].replace(tzinfo=pytz.utc)
+            delta=trade_bucketed["timestamp"].replace(tzinfo=pytz.utc) - last_one["timestamp"].replace(tzinfo=pytz.utc)
             print(delta)
             if delta.total_seconds()<=0:
                 done = True
@@ -436,7 +436,7 @@ class EfiIndicator(TradeBucketedIndicator):
 
     def create(self, trade_bucketed):
         _lastindicator = self.last_one()
-        if not _lastindicator or _lastindicator["timestamp"] < trade_bucketed["timestamp"]:
+        if not _lastindicator or _lastindicator["timestamp"] < trade_bucketed["timestamp"].replace(tzinfo=pytz.utc):
             self.increase_history(_lastindicator, trade_bucketed)
         elif _lastindicator["timestamp"] == trade_bucketed["timestamp"]:
             pre_timestamp=BinSizeTimestamp().get_prev_timestamp(_lastindicator["timestamp"],self.bin_size)
