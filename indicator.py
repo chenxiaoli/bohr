@@ -37,22 +37,23 @@ db = client["trade_data"]
 
 def callback(ch, method, properties, body):
     logging.info("ch:%s,method:%s,properties:%s,body:%s" %(ch,method,properties,body))
-    # symbol = "XBTUSD"
-    # source_collection = db["bitmex_trade_bucketed"]
-    # collection = db["trade_bucketed_indicator"]
-    # node = "bitmex.com"
-    # bin_size = "30m"
-    # source = "close"
-    # short = 13
-    # long = 30
-    # signal = 9
-    # trade_bucketed_collection = TradeBucketed(source_collection, symbol=symbol, bin_size_list=())
-    # trade_bucketed = trade_bucketed_collection.get_trade_bucketed_last_one(bin_size)
-    # macd = MACDIndicator(source_collection, collection, node, symbol, bin_size, short=short, long=long, signal=signal,
-    #                      source=source)
-    # macd.create_MACD(trade_bucketed)
-    # efi = EfiIndicator(source_collection, collection, node, symbol, bin_size="3m", length=2)
-    # efi.create(trade_bucketed)
+    symbol = "XBTUSD"
+    source_collection = db["bitmex_trade_bucketed"]
+    collection = db["trade_bucketed_indicator"]
+    node = "bitmex.com"
+    bin_size = "30m"
+    source = "close"
+    short = 13
+    long = 30
+    signal = 9
+    trade_bucketed_collection = TradeBucketed(source_collection, symbol=symbol, bin_size_list=())
+    trade_bucketed = trade_bucketed_collection.get_trade_bucketed_last_one(bin_size)
+    macd = MACDIndicator(source_collection, collection, node, symbol, bin_size, short=short, long=long, signal=signal,
+                         source=source)
+    macd.create_MACD(trade_bucketed)
+    efi = EfiIndicator(source_collection, collection, node, symbol, bin_size="3m", length=2)
+    trade_bucketed=efi._last_source()
+    efi.create(trade_bucketed)
 
 if __name__ == "__main__":
     setup_logger()
@@ -65,9 +66,6 @@ if __name__ == "__main__":
     result = channel.queue_declare('', exclusive=True)
     queue_name = result.method.queue
     channel.queue_bind(exchange='trade_bucketed', queue=queue_name)
-    channel.basic_qos(prefetch_count=1)
-    channel.basic_consume(queue=queue_name, consumer_callback=callback)
+    channel.basic_qos(prefetch_count=10)
+    channel.basic_consume(queue=queue_name, consumer_callback=callback,no_ack=True)
     channel.start_consuming()
-
-
-
