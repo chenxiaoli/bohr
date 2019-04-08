@@ -15,6 +15,16 @@ from tradebucketed.trade_bucketed import TradeBucketed
 import settings
 BITMEX_TRADE_BUCKETED="bitmex_trade_bucketed"
 
+import pika
+import sys
+
+credentials = pika.PlainCredentials("bitmex", "416211")
+connection = pika.BlockingConnection(pika.ConnectionParameters(
+    host=settings.MQ_HOST, port=5672, credentials=credentials)
+)
+
+channel = connection.channel()
+channel.exchange_declare(exchange='trade_bucketed', exchange_type='fanout')
 
 class HttpBitmex(object):
     """BitMEX API Connector."""
@@ -230,13 +240,20 @@ class HttpBitmex(object):
                 if type(item) == str:
                     print("error:", result)
                     exit()
+                else:
+                    item["node"]="bitmex.com"
+
 
                 _key={"symbol":self.symbol,"binSize":self.bin_size,"timestamp":isodate.parse_datetime(item["timestamp"])}
                 del item["timestamp"]
                 self.db["bitmex_trade_bucketed"].update_one(_key,{"$set":item},upsert=True)
                 self._trade_bucketed.increase_create_trade_bucketed()
+            channel.basic_publish(exchange='trade_bucketed', routing_key='bitmex', body=json.dumps(result))
             start = self.count + start
-            sleep(1)
+            if len(result)>5:
+                sleep(1)
+            else:
+                sleep(5)
 
     def get_db_trade_bucketed_last_one(self):
         collection = self.db["bitmex_trade_bucketed"]

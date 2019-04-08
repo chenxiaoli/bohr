@@ -6,13 +6,43 @@ import logging
 import settings
 import pytz
 from collections import OrderedDict
+from settings import BIN_SIZE_LIST
+
+class BinSizeTimestamp(object):
+    def __init__(self):
+        self.bin_sizes=dict(BIN_SIZE_LIST)
+    def interval_minutes(self,bin_size):
+        return self.bin_sizes.get(bin_size)[1]
+
+    def get_prev_timestamp(self,timpstamp,bin_size):
+        """创建下一条记录的时间"""
+        if bin_size=="1M":
+            if timpstamp.month==1:
+                start_time=timpstamp.replace(year=timpstamp.year-1,month=12,day=1,hour=0,minute=0,second=0,microsecond=0)
+            else:
+                start_time=timpstamp.replace(month=timpstamp.month-1,day=1,hour=0,minute=0,second=0,microsecond=0)
+        elif bin_size=="1y":
+            start_time=timpstamp.replace(year=timpstamp.year-1,month=1,day=1, hour=0, minute=0, second=0, microsecond=0)
+        elif bin_size =="1w":
+            start_time=timpstamp - datetime.timedelta(days=7)
+            start_time=start_time.replace(hour=0, minute=0, second=0, microsecond=0)
+            if start_time.isoweekday()!=1:
+                raise  Exception("1w的开始时期计算错误了。")
+        else:
+            _interval_minutes = self.interval_minutes(bin_size)
+            if _interval_minutes==0:
+                raise Exception("binSize时间长度设置出错了。")
+            start_time = timpstamp - datetime.timedelta(minutes=_interval_minutes)
+        return start_time
+
+
 class TradeBucketed(object):
     def __init__(self,collection,symbol,bin_size_list):
         self.collection=collection
         self.symbol=symbol
         self.base_bin_size=settings.BASE_BIN_SIZE
         self.bin_sizes=OrderedDict(bin_size_list)
-    def _get_trade_bucketed_last_one(self,bin_size):
+    def get_trade_bucketed_last_one(self,bin_size):
         cursor=self.collection.find({"symbol":self.symbol,"binSize":bin_size}).sort("timestamp", -1).limit(1)
         for doc in cursor:
             doc["timestamp"]=doc["timestamp"].replace(tzinfo=pytz.utc)
@@ -106,7 +136,7 @@ class TradeBucketed(object):
         logging.info("start create bin size %s params:%s" % (bin_size,bin_size_params))
         _done=True
         first=False #是否第一条记录
-        start = self._get_trade_bucketed_last_one(bin_size=bin_size)
+        start = self.get_trade_bucketed_last_one(bin_size=bin_size)
         if not start:
             start_time = self._create_first_time(bin_size,bin_size_params)
             first=True
@@ -114,7 +144,7 @@ class TradeBucketed(object):
             start_time = start["timestamp"]
         end_time=self._end_time(start_time,bin_size,bin_size_params)
 
-        origin_bin_last_one = self._get_trade_bucketed_last_one(bin_size="1m")
+        origin_bin_last_one = self.get_trade_bucketed_last_one(bin_size="1m")
         orgin_bin_last_one_time=origin_bin_last_one["timestamp"]
         if orgin_bin_last_one_time >= end_time and not first:
             start_time = self._create_next_timestamp(start_time=start_time,bin_size=bin_size,bin_size_params=bin_size_params)

@@ -5,6 +5,10 @@ DB_PASSWORD="416211"
 COLLECTION_PREFIX=(
     ("bitmex","bitmex"),
 )
+MQ_HOST="192.168.1.2"
+MQ_PORT=5672
+MQ_USER="bitmex"
+MQ_PASS="416211"
 
 BIN_SIZE_LIST=(
     ("3m",("1m",3)),

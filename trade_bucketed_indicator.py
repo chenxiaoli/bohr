@@ -3,7 +3,7 @@ from urllib.parse import quote_plus
 from time import sleep
 from pymongo import MongoClient
 import talib
-
+import threading
 import settings
 
 from tradebucketed.trade_bucketed_indicator import EMAIndicator
@@ -20,13 +20,6 @@ def run():
     collection=client["trade_data"]["bitmex_trade_bucketed"]
     symbol="XBTUSD"
     base_bin_size="1m"
-    # trade_bucketed=TradeBucketed(collection,symbol,base_bin_size,settings.BIN_SIZE_LIST)
-    # # Run forever
-    # while True:
-    #     trade_bucketed.increase_create_trade_bucketed()
-
-
-
 def setup_logger():
     # Prints logger info to terminal
     logger = logging.getLogger()
