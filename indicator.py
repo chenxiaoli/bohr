@@ -67,5 +67,5 @@ if __name__ == "__main__":
     queue_name = result.method.queue
     channel.queue_bind(exchange='trade_bucketed', queue=queue_name)
     channel.basic_qos(prefetch_count=10)
-    channel.basic_consume(queue=queue_name, consumer_callback=callback,no_ack=True)
+    channel.basic_consume(queue=queue_name, on_message_callback=callback,auto_ack=True)
     channel.start_consuming()
