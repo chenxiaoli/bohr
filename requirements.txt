@@ -1,3 +1,4 @@
+pika
 mongoengine
 pytz
 pymongo
