@@ -23,3 +23,18 @@ $ make install
 $ cp /usr/lib/libta_lib*  ~/bohr/env/lib
 最后：
 pip install ta-lib
+
+
+#etcd
+wget https://github.com/etcd-io/etcd/releases/download/v3.3.12/etcd-v3.3.12-linux-amd64.tar.gz
+
+docker
+sudo docker rm bohr-etcd
+sudo docker run \
+  -d \
+  -p 2379:2379 \
+  -p 2380:2380 \
+  -p 4001:4001 \
+  -p 7001:7001 \
+  --name bohr-etcd \
+  elcolio/etcd:latest

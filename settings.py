@@ -1,3 +1,5 @@
+ETCD_HOST="192.168.1.2"
+ETCD_PORT=2379
 DB_HOST="192.168.1.2"
 DB_USER="admin"
 DB_PASSWORD="416211"
@@ -5,6 +7,7 @@ DB_PASSWORD="416211"
 COLLECTION_PREFIX=(
     ("bitmex","bitmex"),
 )
+
 MQ_HOST="192.168.1.2"
 MQ_PORT=5672
 MQ_USER="bitmex"
@@ -34,3 +37,53 @@ BIN_SIZE_LIST=(
 BASE_BIN_SIZE="1m"
 
 TRADE_BUCKETED_INDICATOR_COLLECTION="trade_bucketed_indicator"
+
+bohr_trade_bucketed_indicator_clollection="trade_bucketed_indicator"
+
+
+bohr_mq={
+    "host":"192.168.1.2",
+    'port':5672,
+    "user":"bitmex",
+    "password":"416211"
+}
+bohr_db={
+    "host":"192.168.1.2",
+    "user":"admin",
+    "password":"416211"
+}
+
+indicators=[{
+    "key": "bitemex.com-XBTUSD-1h-ema-9-close",
+    "node":"bitmex.com",
+    "symbol":"XBTUSD",
+    "binSize":"1h",
+    "name":"ema",
+    "length":9,
+    "source":"close"
+},{
+    "key": "bitemex.com-XBTUSD-4h-ema-9-close",
+    "node":"bitmex.com",
+    "symbol":"XBTUSD",
+    "binSize":"4h",
+    "name":"ema",
+    "length":9,
+    "source":"close"
+},{
+    "key": "bitemex.com-XBTUSD-4h-macd-9-26-12-close",
+    "node":"bitmex.com",
+    "symbol":"XBTUSD",
+    "binSize":"4h",
+    "name":"macd",
+    "short":9,
+    "long":26,
+    "signal":12,
+    "source":"close"
+},{
+    "key": "bitemex.com-XBTUSD-4h-efi-2",
+    "node":"bitmex.com",
+    "symbol":"XBTUSD",
+    "binSize":"4h",
+    "name":"efi",
+    "length":2
+}]

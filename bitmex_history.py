@@ -236,24 +236,27 @@ class HttpBitmex(object):
                 print(result)
                 print("no more")
                 _more = False
-            for item in result:
-                if type(item) == str:
-                    print("error:", result)
-                    exit()
-                else:
-                    item["node"]="bitmex.com"
-
-
-                _key={"symbol":self.symbol,"binSize":self.bin_size,"timestamp":isodate.parse_datetime(item["timestamp"])}
-                del item["timestamp"]
-                self.db["bitmex_trade_bucketed"].update_one(_key,{"$set":item},upsert=True)
-                self._trade_bucketed.increase_create_trade_bucketed()
-            channel.basic_publish(exchange='trade_bucketed', routing_key='', body=json.dumps(result))
-            start = self.count + start
-            if len(result)>5:
-                sleep(1)
             else:
-                sleep(5)
+                for item in result:
+                    if type(item) == str:
+                        print("error:", result)
+                        exit()
+                    else:
+                        item["node"]="bitmex.com"
+
+
+                    _key={"symbol":self.symbol,"binSize":self.bin_size,"timestamp":isodate.parse_datetime(item["timestamp"])}
+                    del item["timestamp"]
+                    self.db["bitmex_trade_bucketed"].update_one(_key,{"$set":item},upsert=True)
+                    self._trade_bucketed.increase_create_trade_bucketed()
+                item=result[-1]
+                item["node"]="bitmex.com"
+                channel.basic_publish(exchange='trade_bucketed.topic', routing_key='bitmex.com', body=json.dumps(item))
+                start = self.count + start
+                if len(result)>5:
+                    sleep(1)
+                else:
+                    sleep(5)
 
     def get_db_trade_bucketed_last_one(self):
         collection = self.db["bitmex_trade_bucketed"]

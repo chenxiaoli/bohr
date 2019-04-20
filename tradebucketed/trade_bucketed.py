@@ -8,6 +8,8 @@ import pytz
 from collections import OrderedDict
 from settings import BIN_SIZE_LIST
 
+
+
 class BinSizeTimestamp(object):
     def __init__(self):
         self.bin_sizes=dict(BIN_SIZE_LIST)
@@ -168,7 +170,7 @@ class TradeBucketed(object):
             item["symbol"]=self.symbol
             item["binSize"]=bin_size
         self.save_or_update(item)
-        return _done
+        return _done,item
 
 
     def _trade_bucketed_aggregation(self,items):
