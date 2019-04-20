@@ -32,14 +32,14 @@ if __name__ == '__main__':
                 },
             "apply":[("cross",("macd",(13,30,9,"close"),-1),0),("up",("macd",(13,30,9,"close"),-1)),("up",("ema",(8,"close"),-2),("ema",(8,"close"),-1))]
           },]
-    buy_action_factors={
+    buy_action_factors=[{
         "dataSet":{
                 "node":"bitmex.com",
                 "symbol":"XBTUSD",
                 "binSize":"3m",
                 },
-        "apply": [("up",("efi", 2),2), "and", ("cross",("efi",2),0)]
-    }
+        "apply":[("up",("efi",(2,),-1),0),("cross",("efi",(2,),-1),0)],
+    },]
 
     uri = "mongodb://%s:%s@%s" % (
         quote_plus(settings.DB_USER), quote_plus(settings.DB_PASSWORD), settings.DB_HOST)
@@ -79,18 +79,15 @@ if __name__ == '__main__':
     # triple=TripleShortTrade(trade_bucketed_collection,buy_strategy,buy,sell_strategy,sell,money,max_loss)
     # triple.forward()
     # buy_strategy.apply()
-    data_set={
-                "node":"bitmex.com",
-                "symbol":"XBTUSD",
-                "binSize":"30m",
-                }
 
-    indicators=[("ema",(9,"close")),("macd",(13,30,9,"close"))]
-    for indicator in indicators:
-        summary=IndicatorSummary(db=db,data_set=data_set,data=indicator)
-        summary.add_or_update()
 
-    ds=DataSource(collection=collection, node="bitmex.com", symbol="XBTUSD", bin_size=data_set["binSize"],indicators=indicators)
-
+    for factors in buy_action_factors:
+        _data_set=factors["dataSet"]
+        _exps=factors["apply"]
+        for _exp in _exps:
+            for _s in _exp:
+                if type(_s) is tuple and _s[0] in ("macd","ema","efi"):
+                    _summary = IndicatorSummary(db=db, data_set=_data_set, data=_s)
+                    _summary.add_or_update()
 
 

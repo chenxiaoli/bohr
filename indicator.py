@@ -55,7 +55,7 @@ def indicator_run_loop(item,instance):
             _item=_queue.get()
             logging.debug("get queue %s" % item["key"])
             instance.increase_create()
-        logging.debug("heart beat")
+        logging.debug("%s heart beat" % item["key"])
         sleep(1)
 
 

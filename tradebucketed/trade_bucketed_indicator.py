@@ -13,6 +13,10 @@ from tradebucketed.trade_bucketed import BinSizeTimestamp
 3.生成 binsize里指定 indicators，go step 2.
 
 """
+indicators=(
+    "macd","efi","ema"
+)
+
 bin_size_indicator = {
     "3m": {
         "efi": [(2, "close"), (3, "close")]
