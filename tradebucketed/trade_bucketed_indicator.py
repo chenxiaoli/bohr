@@ -634,6 +634,15 @@ class EfiIndicator(TradeBucketedIndicator):
             pre_one = self.find_one(pre_timestamp)
             self._create_one(pre_one, trade_bucketed)
 
+
+    def find_one(self, timestamp):
+        _one = self.collection.find_one(
+            {"node": self.node, "symbol": self.symbol, "binSize": self.bin_size, "timestamp": timestamp},
+            {"node": 1, "symbol": 1, "binSize": 1, "timestamp": 1, "efi": {
+                "$elemMatch": {"length": self.length}}}
+        )
+        return _one
+
     def last_one(self):
         _cursor = self.collection.find({"node": self.node,
                                         "symbol": self.symbol,
