@@ -306,6 +306,7 @@ class EmaIndicator(TradeBucketedIndicator):
 
 class MACDIndicator(TradeBucketedIndicator):
     def __init__(self, source_collection, collection, node, symbol, bin_size, short, long, signal, source):
+        self.name="macd"
         self.source_collection = source_collection
         self.node = node
         self.symbol = symbol
@@ -497,6 +498,7 @@ class MACDIndicator(TradeBucketedIndicator):
 
 class EfiIndicator(TradeBucketedIndicator):
     def __init__(self, source_collection, collection, node, symbol, bin_size, length):
+        self.name="efi"
         self.source_collection = source_collection
         self.node = node
         self.symbol = symbol
