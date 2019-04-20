@@ -592,14 +592,9 @@ class EfiIndicator(TradeBucketedIndicator):
             key
             ,
             {"$set": {
-                "efi.$.short": values["short"],
-                "efi.$.long": values["long"],
-                "efi.$.signal": values["signal"],
-                "efi.$.source": values["source"],
-                "efi.$.shortEma": values["shortEma"],
-                "efi.$.longEma": values["longEma"],
-                "efi.$.diff": values["diff"],
-                "efi.$.dea": values["dea"]},
+                "efi.$.length": values["length"],
+
+            },
             },
             upsert=True)
         return result
