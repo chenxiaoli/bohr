@@ -3,16 +3,12 @@ import pika
 from urllib.parse import quote_plus
 from time import sleep
 from pymongo import MongoClient
-import talib
 import threading
 import settings
 from mongoengine import connect
-from tradebucketed.trade_bucketed_indicator import MACDIndicator,EfiIndicator,EmaIndicator,IndicatorSummary,get_indicator_instance
-from tradebucketed.trade_bucketed import TradeBucketed
-import etcd
+from tradebucketed.trade_bucketed_indicator import IndicatorSummary,get_indicator_instance
 import queue
 import json
-import sys
 
 
 uri = "mongodb://%s:%s@%s" % (
@@ -84,15 +80,15 @@ def callback(ch, method, properties, body):
 
 
 
-def run_etcd_watch():
-    client = etcd.Client(host=settings.ETCD_HOST, port=settings.ETCD_PORT)
-    indicators=client.read('/bohr/trade_bucketed_indicators').value
-    while True:
-        try:
-            indicators = client.read('/bohr/trade_bucketed_indicators', wait=True,timeout=3600).value
-        except etcd.EtcdWatchTimedOut:
-            logging.debug("except watch time out")
-        sleep(5)
+# def run_etcd_watch():
+#     client = etcd.Client(host=settings.ETCD_HOST, port=settings.ETCD_PORT)
+#     indicators=client.read('/bohr/trade_bucketed_indicators').value
+#     while True:
+#         try:
+#             indicators = client.read('/bohr/trade_bucketed_indicators', wait=True,timeout=3600).value
+#         except etcd.EtcdWatchTimedOut:
+#             logging.debug("except watch time out")
+#         sleep(5)
 
 
 def test_callback(ch, method, properties, body):
@@ -113,10 +109,6 @@ if __name__ == "__main__":
 
     for k,v in indicator_handle_threads.items():
         v.start()
-
-
-
-
 
     credentials = pika.PlainCredentials(settings.MQ_USER, settings.MQ_PASS)
     connection = pika.BlockingConnection(pika.ConnectionParameters(
