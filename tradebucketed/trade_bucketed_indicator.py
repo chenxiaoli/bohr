@@ -323,10 +323,10 @@ class MACDIndicator(TradeBucketedIndicator):
         self.elem_match = {"short": self.short,"long":self.long,"signal":self.signal, "source": self.source}
 
     def increase_create(self):
-        logging.debug("ema increase create start")
+        logging.debug("%s increase create start" % self.name)
         trade_bucketed=self.last_trade_bucketed()
         self.create(trade_bucketed)
-        logging.debug("ema increase create done")
+        logging.debug("%s increase create done" % self.name)
 
     def create(self, trade_bucketed):
         logging.debug("create macd for %s" % trade_bucketed)
@@ -611,6 +611,13 @@ class EfiIndicator(TradeBucketedIndicator):
             if delta.total_seconds() <= 0:
                 done = True
         return last_one
+
+
+    def increase_create(self):
+        logging.debug("%s increase create start" % self.name)
+        trade_bucketed=self.last_trade_bucketed()
+        self.create(trade_bucketed)
+        logging.debug("%s increase create done" % self.name)
 
     def create(self, trade_bucketed):
         _lastindicator = self.last_one()
