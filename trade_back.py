@@ -30,7 +30,7 @@ if __name__ == '__main__':
                 "symbol":"XBTUSD",
                 "binSize":"30m",
                 },
-            "apply":[("cross",("macd",(13,30,9,"close"),-1),0),("up",("macd",(13,30,9,"close"),-1)),("up",("ema",(8,"close"),-2),("ema",(8,"close"),-1))]
+            "apply":[("cross",("macd",(13,30,9,"close"),[-2,-1]),0),("up",("macd",(13,30,9,"close"),[-2,-1])),("up",("ema",(8,"close"),[-2,-1]))]
           },]
     buy_action_factors=[{
         "dataSet":{
@@ -38,7 +38,7 @@ if __name__ == '__main__':
                 "symbol":"XBTUSD",
                 "binSize":"3m",
                 },
-        "apply":[("up",("efi",(2,),-1),0),("cross",("efi",(2,),-1),0)],
+        "apply":[("up",("efi",(2,),[-2,-1])),("cross",("efi",(2,),[-1,-2]),0)],
     },]
 
     uri = "mongodb://%s:%s@%s" % (
@@ -60,7 +60,7 @@ if __name__ == '__main__':
                 "symbol":"XBTUSD",
                 "binSize":"30m",
                 },
-            "apply":[("cross",("macd",12,30,9,"close"),0),"and",("down",("macd",12,30,9,"close"),2),"and",("up",("ema",8,"close"),2)]
+            "apply":[("cross",("macd",(12,30,9,"close"),[-2,-1]),0),("down",("macd",12,30,9,"close"),[-2,-1]),("up",("ema",(8,"close"),[-2,-1]))]
           },]
 
 
@@ -89,5 +89,3 @@ if __name__ == '__main__':
                 if type(_s) is tuple and _s[0] in ("macd","ema","efi"):
                     _summary = IndicatorSummary(db=db, data_set=_data_set, data=_s)
                     _summary.add_or_update()
-
-
