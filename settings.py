@@ -1,11 +1,15 @@
 ETCD_HOST="192.168.1.2"
 ETCD_PORT=2379
 DB_HOST="192.168.1.2"
+DB_PORT=27017
+DB_NAME="trade_data"
 DB_USER="admin"
 DB_PASSWORD="416211"
 
 COLLECTION_PREFIX=(
     ("bitmex","bitmex"),
+("okex","okex"),
+("huobi","huobi"),
 )
 
 MQ_HOST="192.168.1.2"
@@ -52,38 +56,6 @@ bohr_db={
     "user":"admin",
     "password":"416211"
 }
-
-indicators=[{
-    "key": "bitemex.com-XBTUSD-1h-ema-9-close",
-    "node":"bitmex.com",
-    "symbol":"XBTUSD",
-    "binSize":"1h",
-    "name":"ema",
-    "length":9,
-    "source":"close"
-},{
-    "key": "bitemex.com-XBTUSD-4h-ema-9-close",
-    "node":"bitmex.com",
-    "symbol":"XBTUSD",
-    "binSize":"4h",
-    "name":"ema",
-    "length":9,
-    "source":"close"
-},{
-    "key": "bitemex.com-XBTUSD-4h-macd-9-26-12-close",
-    "node":"bitmex.com",
-    "symbol":"XBTUSD",
-    "binSize":"4h",
-    "name":"macd",
-    "short":9,
-    "long":26,
-    "signal":12,
-    "source":"close"
-},{
-    "key": "bitemex.com-XBTUSD-4h-efi-2",
-    "node":"bitmex.com",
-    "symbol":"XBTUSD",
-    "binSize":"4h",
-    "name":"efi",
-    "length":2
-}]
+indicators = (
+    "macd", "efi", "ema"
+)

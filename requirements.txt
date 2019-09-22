@@ -1,4 +1,5 @@
 pika==1.0.0
+tornado==6.0.2
 etcd3==0.10.0
 mongoengine
 pytz
@@ -7,3 +8,5 @@ requests
 isodate==0.6.0
 numpy
 tensorflow==1.13.1
+Eve==0.9
+flask-cors

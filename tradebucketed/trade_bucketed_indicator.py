@@ -13,121 +13,96 @@ from tradebucketed.trade_bucketed import BinSizeTimestamp
 3.生成 binsize里指定 indicators，go step 2.
 
 """
-indicators=(
-    "macd","efi","ema"
-)
 
-bin_size_indicator = {
-    "3m": {
-        "efi": [(2, "close"), (3, "close")]
-    },
-    "30m": {
-        "ema": [{
-            "length": 9,
-            "source": "close"
-        },
-            {"length": 20,
-             "source": "close"},
-            {"length": 50,
-             "source": "close"}
-        ],
-        "macd": [
-            {"short": 9, "long": 26, "signal": 12, "source": "close"},
-            {"short": 10, "long": 30, "signal": 15, "source": "close"},
-        ],
-    },
-    "1d": {
-        "ema": [{
-            "length": 60,
-            "source": "close"
-        },
-            {"length": 120,
-             "source": "close"},
-            {"length": 200,
-             "source": "close"}
-        ],
-    },
-}
 
 class IndicatorSummary(object):
-    def __init__(self,db,data_set=None,data=None):
-        self.db=db
+    def __init__(self, db=None, data_set=None, data=None):
+
         if data:
-            self.data=data
+            self.data = data
         if data_set:
-            self.node=data_set["node"]
-            self.symbol=data_set["symbol"]
-            self.bin_size=data_set["binSize"]
-        self.collection=self.db["indicator"]
+            self.node = data_set["node"]
+            self.symbol = data_set["symbol"]
+            self.bin_size = data_set["binSize"]
+        if db:
+            self.set_db(db)
+
+    def set_db(self, db):
+        self.db = db
+        self.collection = self.db["indicator"]
+
     def get_key(self):
-        seq=[self.node,self.symbol,self.bin_size,self.data[0]]
+        seq = [self.node, self.symbol, self.bin_size, self.data[0]]
         seq.extend(self.data[1])
-        seq2=[]
+        seq2 = []
         for i in seq:
             seq2.append(str(i))
         return "-".join(seq2)
 
-    def fetch(self,node=None,symbol=None,bin_size=None):
-        key={}
+    def fetch(self, node=None, symbol=None, bin_size=None):
+        key = {}
         if node:
-            key.update({"node":node})
+            key.update({"node": node})
         if symbol:
-            key.update({"symbol":symbol})
+            key.update({"symbol": symbol})
         if bin_size:
-            key.update({"binSize":bin_size})
-        qs=self.collection.find(key)
-        result=[]
+            key.update({"binSize": bin_size})
+        qs = self.collection.find(key)
+        result = []
         for item in qs:
             result.append(item)
         return result
 
-
     def get_values(self):
-        return getattr(self,"_indicator_%s_values" % self.data[0])()
+        return getattr(self, "_indicator_%s_values" % self.data[0])()
+
     def _indicator_macd_values(self):
         return {
-                "node": self.node,
-                "symbol": self.symbol,
-                "binSize": self.bin_size,
-                "name":"macd",
-                "short":self.data[1][0],
-                "long":self.data[1][1],
-                "signal":self.data[1][2],
-                "source":self.data[1][3]
-                }
+            "node": self.node,
+            "symbol": self.symbol,
+            "binSize": self.bin_size,
+            "name": "macd",
+            "short": self.data[1][0],
+            "long": self.data[1][1],
+            "signal": self.data[1][2],
+            "source": self.data[1][3]
+        }
+
     def _indicator_ema_values(self):
         return {
-                "node": self.node,
-                "symbol": self.symbol,
-                "binSize": self.bin_size,
-                "name":"ema",
-                "length":self.data[1][0],
-                "source":self.data[1][1]
-                }
+            "node": self.node,
+            "symbol": self.symbol,
+            "binSize": self.bin_size,
+            "name": "ema",
+            "length": self.data[1][0],
+            "source": self.data[1][1]
+        }
+
     def _indicator_efi_values(self):
         return {
-                "node":self.node,
-                "symbol":self.symbol,
-                "binSize":self.bin_size,
-                "name":"efi",
-                "length":self.data[1][0],
-                }
+            "node": self.node,
+            "symbol": self.symbol,
+            "binSize": self.bin_size,
+            "name": "efi",
+            "length": self.data[1][0],
+        }
 
     def add_or_update(self):
-        self.collection.update_one({"key":self.get_key()}, {"$set": self.get_values()}, upsert=True)
+        self.collection.update_one({"key": self.get_key()}, {"$set": self.get_values()}, upsert=True)
 
 
-
-def get_indicator_instance(source_collection,collection,name,args):
+def get_indicator_instance(source_collection, collection, name, args):
     node = args["node"]
     symbol = args["symbol"]
     bin_size = args["binSize"]
-    if name=="macd":
-        return MACDIndicator(source_collection,collection, node=node, symbol=symbol,
-                             bin_size=bin_size, short=args["short"], long=args["long"], signal=args["signal"], source=args["source"])
-    elif name=="ema":
-        return EmaIndicator(source_collection, collection, node, symbol, bin_size, length=args["length"], source=args["source"])
-    elif name=="efi":
+    if name == "macd":
+        return MACDIndicator(source_collection, collection, node=node, symbol=symbol,
+                             bin_size=bin_size, short=args["short"], long=args["long"], signal=args["signal"],
+                             source=args["source"])
+    elif name == "ema":
+        return EmaIndicator(source_collection, collection, node, symbol, bin_size, length=args["length"],
+                            source=args["source"])
+    elif name == "efi":
         return EfiIndicator(source_collection, collection, node, symbol, bin_size, length=args["length"],
                             )
     else:
@@ -155,8 +130,6 @@ class TradeBucketedIndicator(object):
         exist = None
         for i in _cursor:
             exist = i
-        print("-----------------%s exist: %s " % (self.name,exist))
-        logging.debug("ema exist:%s" % exist)
         if exist:
             self.update_indicator(self.name, values)
         else:
@@ -165,7 +138,7 @@ class TradeBucketedIndicator(object):
     def add_indicator(self, name, values):
         result = self.collection.update_one(
             self.key(),
-            {"$addToSet": {name: values},},
+            {"$addToSet": {name: values}, },
             upsert=True)
         return result
 
@@ -204,7 +177,7 @@ class TradeBucketedIndicator(object):
     def last_trade_bucketed(self, ):
         _qq = self.source_collection.find(self.source_filter).sort("timestamp", -1).limit(1)
         for i in _qq:
-            i["timestamp"]=i["timestamp"].replace(tzinfo=pytz.utc)
+            i["timestamp"] = i["timestamp"].replace(tzinfo=pytz.utc)
             return i
 
     def get_EMA(self, yesterday_price, today_price, length):
@@ -306,7 +279,7 @@ class EmaIndicator(TradeBucketedIndicator):
 
 class MACDIndicator(TradeBucketedIndicator):
     def __init__(self, source_collection, collection, node, symbol, bin_size, short, long, signal, source):
-        self.name="macd"
+        self.name = "macd"
         self.source_collection = source_collection
         self.node = node
         self.symbol = symbol
@@ -325,11 +298,11 @@ class MACDIndicator(TradeBucketedIndicator):
 
         self.filter_keys = {"symbol": self.symbol, "binSize": self.bin_size}
         self.source_filter = {"symbol": self.symbol, "binSize": self.bin_size}
-        self.elem_match = {"short": self.short,"long":self.long,"signal":self.signal, "source": self.source}
+        self.elem_match = {"short": self.short, "long": self.long, "signal": self.signal, "source": self.source}
 
     def increase_create(self):
         logging.debug("%s increase create start" % self.name)
-        trade_bucketed=self.last_trade_bucketed()
+        trade_bucketed = self.last_trade_bucketed()
         self.create(trade_bucketed)
         logging.debug("%s increase create done" % self.name)
 
@@ -372,7 +345,7 @@ class MACDIndicator(TradeBucketedIndicator):
 
         result = self.collection.update_one(
             key,
-            {"$addToSet": {"macd": values},},
+            {"$addToSet": {"macd": values}, },
             upsert=True)
         return result
 
@@ -400,7 +373,8 @@ class MACDIndicator(TradeBucketedIndicator):
                 last_macd = self.create_next(last_macd, step=500)
             else:
                 last_macd = self.create_first_one()
-            delta = trade_bucketed["timestamp"].replace(tzinfo=pytz.utc) - last_macd["timestamp"].replace(tzinfo=pytz.utc)
+            delta = trade_bucketed["timestamp"].replace(tzinfo=pytz.utc) - last_macd["timestamp"].replace(
+                tzinfo=pytz.utc)
             print(delta)
             if delta.total_seconds() <= 0:
                 done = True
@@ -498,7 +472,7 @@ class MACDIndicator(TradeBucketedIndicator):
 
 class EfiIndicator(TradeBucketedIndicator):
     def __init__(self, source_collection, collection, node, symbol, bin_size, length):
-        self.name="efi"
+        self.name = "efi"
         self.source_collection = source_collection
         self.node = node
         self.symbol = symbol
@@ -583,7 +557,7 @@ class EfiIndicator(TradeBucketedIndicator):
 
         result = self.collection.update_one(
             key,
-            {"$addToSet": {"efi": values},},
+            {"$addToSet": {"efi": values}, },
             upsert=True)
         return result
 
@@ -613,10 +587,9 @@ class EfiIndicator(TradeBucketedIndicator):
                 done = True
         return last_one
 
-
     def increase_create(self):
         logging.debug("%s increase create start" % self.name)
-        trade_bucketed=self.last_trade_bucketed()
+        trade_bucketed = self.last_trade_bucketed()
         self.create(trade_bucketed)
         logging.debug("%s increase create done" % self.name)
 
@@ -628,7 +601,6 @@ class EfiIndicator(TradeBucketedIndicator):
             pre_timestamp = BinSizeTimestamp().get_prev_timestamp(_lastindicator["timestamp"], self.bin_size)
             pre_one = self.find_one(pre_timestamp)
             self._create_one(pre_one, trade_bucketed)
-
 
     def find_one(self, timestamp):
         _one = self.collection.find_one(

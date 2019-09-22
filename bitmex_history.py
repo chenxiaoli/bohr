@@ -1,11 +1,7 @@
-import sys
 from pymongo import MongoClient
-from pymongo.errors import DuplicateKeyError
-
 from urllib.parse import quote_plus
 import time
 from time import sleep
-import pymongo
 import requests
 import isodate
 import datetime
@@ -16,7 +12,6 @@ import settings
 BITMEX_TRADE_BUCKETED="bitmex_trade_bucketed"
 
 import pika
-import sys
 
 credentials = pika.PlainCredentials("bitmex", "416211")
 connection = pika.BlockingConnection(pika.ConnectionParameters(
@@ -241,17 +236,13 @@ class HttpBitmex(object):
                     if type(item) == str:
                         print("error:", result)
                         exit()
-                    else:
-                        item["node"]="bitmex.com"
-
-
                     _key={"symbol":self.symbol,"binSize":self.bin_size,"timestamp":isodate.parse_datetime(item["timestamp"])}
                     del item["timestamp"]
                     self.db["bitmex_trade_bucketed"].update_one(_key,{"$set":item},upsert=True)
                     self._trade_bucketed.increase_create_trade_bucketed()
                 item=result[-1]
                 item["node"]="bitmex.com"
-                channel.basic_publish(exchange='trade_bucketed.topic', routing_key='bitmex.com', body=json.dumps(item))
+                channel.basic_publish(exchange='trade_bucketed.topic', routing_key='bitmex.com-%s' % self.symbol, body=json.dumps(item))
                 start = self.count + start
                 if len(result)>5:
                     sleep(1)
