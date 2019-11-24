@@ -2,8 +2,8 @@
 实时三重量化交易系统
 
 创建python虚拟环境
-virtualenv -p /usr/bin/python3 env
-source ./env/bin/activate
+virtualenv -p /usr/bin/python3 venv
+source ./venv/bin/activate
 
 talib库安装
 alib库有超多现成的方法，不用辛辛苦苦造轮子。上MACD、动量、rsi、移动均线等等
