@@ -7,6 +7,6 @@ pymongo
 requests
 isodate==0.6.0
 numpy
-tensorflow==1.13.1
+tensorflow==1.15.2
 Eve==0.9
 flask-cors
